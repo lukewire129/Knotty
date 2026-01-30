@@ -1,0 +1,20 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+
+    <PackageId>Knotty</PackageId>
+    <Version>1.0.0</Version>
+    <Authors>	lukewire129</Authors>
+    <Description>Knotty: A simple, solid MVI-style state management library for .NET. Solve knotty UI states with ease!</Description>
+    <PackageTags>WPF;MVI;MVVM;StateManagement;Knotty;K-Not</PackageTags>
+    <PackageProjectUrl>https://github.com/your/knotty</PackageProjectUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+
+    <AssemblyName>Knotty</AssemblyName>
+    <RootNamespace>Knotty</RootNamespace>
+  </PropertyGroup>
+
+</Project>
