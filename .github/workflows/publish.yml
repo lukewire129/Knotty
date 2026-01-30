@@ -28,7 +28,7 @@ jobs:
 
     - name: Pack Library
       # -o out 옵션으로 루트 폴더의 out 디렉토리에 패키지 생성
-      run: dotnet pack src/Knotty.csproj -c Release /p:PackageVersion=${{ steps.get_version.outputs.VERSION }} -o out
+      run: dotnet pack src/Knotty/Knotty.csproj -c Release /p:PackageVersion=${{ steps.get_version.outputs.VERSION }} -o out
 
     - name: Push to NuGet
       # 생성된 루트/out 폴더 내의 nupkg 파일을 NuGet에 업로드
@@ -43,3 +43,4 @@ jobs:
         body: "### 🧶 Knotty v${{ steps.get_version.outputs.VERSION }} 릴리즈!"
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
