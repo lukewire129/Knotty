@@ -12,11 +12,12 @@ jobs:
       contents: write
 
     steps:
-    - uses: actions/checkout@v4
+    - name: Checkout Code
+      uses: actions/checkout@v4
       with:
         fetch-depth: 0
 
-    - name: Get Version
+    - name: Get Version from Tag
       id: get_version
       run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
 
@@ -25,20 +26,20 @@ jobs:
       with:
         dotnet-version: '8.0.x'
 
-    - name: Pack
-      run: dotnet pack .\src\Knotty.csproj -c Release /p:PackageVersion=${{ steps.get_version.outputs.VERSION }} -o out
+- name: Pack Library
+      # 여기서 -o out을 하면 'src' 내부가 아니라 '루트'에 out 폴더가 생깁니다.
+      run: dotnet pack src/Knotty.csproj -c Release /p:PackageVersion=${{ steps.get_version.outputs.VERSION }} -o out
 
     - name: Push to NuGet
-      run: dotnet nuget push .\src\out\*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json
+      # 위에서 만든 '루트/out' 경로를 그대로 사용합니다.
+      run: dotnet nuget push out/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
 
     - name: Create Release
       uses: softprops/action-gh-release@v2
       with:
-        files: .\src\out\*.nupkg
+        # 여기도 마찬가지로 '루트/out'입니다!
+        files: out/*.nupkg
         name: Release v${{ steps.get_version.outputs.VERSION }}
         body: "### 🧶 Knotty v${{ steps.get_version.outputs.VERSION }} 릴리즈!"
       env:
-
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-
