@@ -26,7 +26,7 @@ jobs:
         dotnet-version: '8.0.x'
 
     - name: Pack
-      run: dotnet pack -c Release /p:PackageVersion=${{ steps.get_version.outputs.VERSION }} -o out
+      run: dotnet pack Knotty.csproj -c Release /p:PackageVersion=${{ steps.get_version.outputs.VERSION }} -o out
 
     - name: Push to NuGet
       run: dotnet nuget push ./out/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json
