@@ -6,9 +6,9 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
-namespace Knot.Core;
+namespace Knotty.Core;
 
-public abstract class KnotStore<TState, TIntent>
+public abstract class KnottyStore<TState, TIntent>
     : INotifyPropertyChanged, INotifyPropertyChanging, INotifyDataErrorInfo, IDisposable
     where TState : class
 {
@@ -37,10 +37,10 @@ public abstract class KnotStore<TState, TIntent>
         private set { _isLoading = value; OnPropertyChanged (); }
     }
 
-    protected KnotStore(TState initialState)
+    protected KnottyStore(TState initialState)
     {
         State = initialState ?? throw new ArgumentNullException (nameof (initialState));
-        _busToken = KnotBus.Subscribe<TIntent> (this, Dispatch);
+        _busToken = KnottyBus.Subscribe<TIntent> (this, Dispatch);
     }
 
     public void Dispatch(TIntent intent) => _ = DispatchAsync (intent);

@@ -1,3 +1,4 @@
 <Solution>
+  <Project Path="sample/CounterApp/CounterApp.csproj" Id="09cfe1be-021d-400a-ac4d-498c35bc9b02" />
   <Project Path="src/Knotty/Knotty.csproj" />
 </Solution>
