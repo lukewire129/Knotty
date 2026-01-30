@@ -34,10 +34,11 @@ jobs:
     - name: Create Release
       uses: softprops/action-gh-release@v2
       with:
-        files: out/*.nupkg
+        files: .\src\out\*.nupkg
         name: Release v${{ steps.get_version.outputs.VERSION }}
         body: "### 🧶 Knotty v${{ steps.get_version.outputs.VERSION }} 릴리즈!"
       env:
 
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
 
