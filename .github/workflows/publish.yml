@@ -26,10 +26,10 @@ jobs:
         dotnet-version: '8.0.x'
 
     - name: Pack
-      run: dotnet pack src/Knotty.csproj -c Release /p:PackageVersion=${{ steps.get_version.outputs.VERSION }} -o out
+      run: dotnet pack .\src\Knotty.csproj -c Release /p:PackageVersion=${{ steps.get_version.outputs.VERSION }} -o out
 
     - name: Push to NuGet
-      run: dotnet nuget push src/out/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json
+      run: dotnet nuget push .\src\out\*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json
 
     - name: Create Release
       uses: softprops/action-gh-release@v2
@@ -40,3 +40,4 @@ jobs:
       env:
 
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
