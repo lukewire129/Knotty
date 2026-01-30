@@ -26,18 +26,18 @@ jobs:
       with:
         dotnet-version: '8.0.x'
 
-- name: Pack Library
-      # 여기서 -o out을 하면 'src' 내부가 아니라 '루트'에 out 폴더가 생깁니다.
+    - name: Pack Library
+      # -o out 옵션으로 루트 폴더의 out 디렉토리에 패키지 생성
       run: dotnet pack src/Knotty.csproj -c Release /p:PackageVersion=${{ steps.get_version.outputs.VERSION }} -o out
 
     - name: Push to NuGet
-      # 위에서 만든 '루트/out' 경로를 그대로 사용합니다.
+      # 생성된 루트/out 폴더 내의 nupkg 파일을 NuGet에 업로드
       run: dotnet nuget push out/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
 
     - name: Create Release
       uses: softprops/action-gh-release@v2
       with:
-        # 여기도 마찬가지로 '루트/out'입니다!
+        # 생성된 패키지 파일을 GitHub Release에도 첨부
         files: out/*.nupkg
         name: Release v${{ steps.get_version.outputs.VERSION }}
         body: "### 🧶 Knotty v${{ steps.get_version.outputs.VERSION }} 릴리즈!"
