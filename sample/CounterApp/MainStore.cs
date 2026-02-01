@@ -1,35 +1,35 @@
 ﻿using Knotty.Core;
 
 namespace CounterApp;
-public record MainState(int Count, string Message);
+public record CounterState(int Count, string Message);
 // 의도는 행동을 정의합니다.
-public abstract record MainIntent
+public abstract record CounterIntent
 {
-    public record Increment : MainIntent;
-    public record Decrement : MainIntent;
-    public record ResetAsync : MainIntent;
+    public record Increment : CounterIntent;
+    public record Decrement : CounterIntent;
+    public record Reset : CounterIntent;
 }
 
-public class MainStore : KnottyStore<MainState, MainIntent>
+public class MainStore : KnottyStore<CounterState, CounterIntent>
 {
-    public MainStore() : base (new MainState (0, "준비 완료!")) { }
+    public MainStore() : base (new CounterState (0, "준비 완료!")) { }
 
-    protected override async Task HandleIntent(MainIntent intent)
+    protected override async Task HandleIntent(CounterIntent intent)
     {
         switch (intent)
         {
-            case MainIntent.Increment:
+            case CounterIntent.Increment:
                 State = State with { Count = State.Count + 1 };
                 break;
 
-            case MainIntent.Decrement:
+            case CounterIntent.Decrement:
                 State = State with { Count = State.Count - 1 };
                 break;
 
-            case MainIntent.ResetAsync:
+            case CounterIntent.Reset:
                 State = State with { Message = "초기화 중..." };
                 await Task.Delay (1000); // 비동기 작업 시뮬레이션
-                State = new MainState (0, "초기화 완료!");
+                State = State with { Message = "초기화 완료!", Count = 0 };
                 break;
         }
     }
