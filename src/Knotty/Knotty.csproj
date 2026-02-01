@@ -10,7 +10,7 @@
     <Authors>	lukewire129</Authors>
     <Description>Knotty: A simple, solid MVI-style state management library for .NET. Solve knotty UI states with ease!</Description>
     <PackageTags>WPF;MVI;MVVM;StateManagement;Knotty;K-Not</PackageTags>
-    <PackageProjectUrl>https://github.com/your/knotty</PackageProjectUrl>
+    <PackageProjectUrl>https://github.com/lukewire129/knotty</PackageProjectUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
 
     <AssemblyName>Knotty</AssemblyName>
