@@ -4,11 +4,12 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Knotty.Core;
 
-public abstract class KnottyStore<TState, TIntent>
+public abstract partial class KnottyStore<TState, TIntent>
     : INotifyPropertyChanged, INotifyPropertyChanging, INotifyDataErrorInfo, IDisposable
     where TState : class
 {
@@ -47,27 +48,58 @@ public abstract class KnottyStore<TState, TIntent>
 
     public async Task DispatchAsync(TIntent intent)
     {
-        if (IsLoading)
-            return; // 이미 로딩 중이면 중복 실행 방지
+        var strategy = GetStrategy (intent);
 
-        try
+        switch (strategy)
         {
-            IsLoading = true;
-            ClearAllErrors ();
-            await HandleIntent (intent);
-        }
-        catch (Exception ex)
-        {
-            AddError ("Store", ex.Message);
-            OnHandleError (ex);
-        }
-        finally
-        {
-            IsLoading = false;
+            case IntentHandlingStrategy.Block:
+                if (IsLoading)
+                    return;
+                await ExecuteIntent (intent);
+                break;
+
+            case IntentHandlingStrategy.Queue:
+                _intentQueue.Enqueue (intent);
+                if (!IsLoading)
+                    await ProcessQueue ();
+                break;
+
+            case IntentHandlingStrategy.Debounce:
+                await ProcessDebounced (intent);
+                break;
+
+            case IntentHandlingStrategy.CancelPrevious:
+                if (_currentCts != null)
+                {
+                    _currentCts.Cancel ();
+                    _currentCts.Dispose ();
+                }
+
+                // 새로운 CancellationTokenSource 생성
+                _currentCts = new CancellationTokenSource ();
+
+                try
+                {
+                    await ExecuteIntent (intent, _currentCts.Token);
+                }
+                finally
+                {
+                    // 완료되면 정리
+                    if (_currentCts != null)
+                    {
+                        _currentCts.Dispose ();
+                        _currentCts = null;
+                    }
+                }
+                break;
+
+            case IntentHandlingStrategy.Parallel:
+                _ = ExecuteIntent (intent);  // Fire and forget
+                break;
         }
     }
 
-    protected abstract Task HandleIntent(TIntent intent);
+    protected abstract Task HandleIntent(TIntent intent, CancellationToken ct = default);
     protected virtual void OnHandleError(Exception ex) { }
 
     // --- 에러 처리 및 변경 알림 로직은 동일 ---

@@ -1,6 +1,6 @@
 ﻿using Knotty.Core;
 
-namespace CounterApp;
+namespace DebounceApp;
 public record CounterState(int Count, string Message);
 // 의도는 행동을 정의합니다.
 public abstract record CounterIntent
@@ -13,6 +13,18 @@ public abstract record CounterIntent
 public class MainStore : KnottyStore<CounterState, CounterIntent>
 {
     public MainStore() : base (new CounterState (0, "준비 완료!")) { }
+
+    protected override IntentHandlingStrategy GetStrategy(CounterIntent intent)
+    {
+        return intent is CounterIntent.Reset 
+            ? IntentHandlingStrategy.Debounce 
+            : base.GetStrategy(intent);
+    }
+
+    protected override TimeSpan GetDebounceDelay(CounterIntent intent)
+    {
+        return TimeSpan.FromSeconds(1);
+    }
 
     protected override async Task HandleIntent(CounterIntent intent, CancellationToken ct)
     {

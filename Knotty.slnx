@@ -1,4 +1,9 @@
 <Solution>
-  <Project Path="sample/CounterApp/CounterApp.csproj" Id="09cfe1be-021d-400a-ac4d-498c35bc9b02" />
+  <Folder Name="/sample/">
+    <Project Path="sample/CancelPreviousApp/CancelPreviousApp.csproj" />
+    <Project Path="sample/CounterApp/CounterApp.csproj" Id="09cfe1be-021d-400a-ac4d-498c35bc9b02" />
+    <Project Path="sample/DebounceApp/DebounceApp.csproj" />
+    <Project Path="sample/QueueApp/QueueApp.csproj" />
+  </Folder>
   <Project Path="src/Knotty/Knotty.csproj" />
 </Solution>

@@ -1,6 +1,6 @@
 ﻿using System.Windows;
 
-namespace CounterApp
+namespace DebounceApp
 {
     /// <summary>
     /// Interaction logic for MainWindow.xaml
