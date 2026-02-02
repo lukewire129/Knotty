@@ -20,7 +20,15 @@ jobs:
     - name: Get Version from Tag
       id: get_version
       run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
-
+      
+    - name: Get tag message
+      id: tag_message
+      run: |
+        echo "MESSAGE<<EOF" >> $GITHUB_OUTPUT
+        git for-each-ref refs/tags/v${{ steps.get_version.outputs.VERSION }} \
+        --format='%(contents)' >> $GITHUB_OUTPUT
+        echo "EOF" >> $GITHUB_OUTPUT
+        
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
@@ -40,7 +48,11 @@ jobs:
         # 생성된 패키지 파일을 GitHub Release에도 첨부
         files: out/*.nupkg
         name: Release v${{ steps.get_version.outputs.VERSION }}
-        body: "### 🧶 Knotty v${{ steps.get_version.outputs.VERSION }} 릴리즈!"
+        body: |
+          ### 🧶 Knotty v${{ steps.get_version.outputs.VERSION }} Release
+
+          ${{ steps.tag_message.outputs.MESSAGE || 'No release notes provided.' }}
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
 
