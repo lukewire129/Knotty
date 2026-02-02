@@ -82,7 +82,7 @@ Knotty works best with C# `record` and `with` expressions. If you are targeting 
 
 ```xml
 <PropertyGroup>
-  <LangVersion>9.0</LangVersion>
+  <LangVersion>7.3</LangVersion>
 </PropertyGroup>
 ```
 
