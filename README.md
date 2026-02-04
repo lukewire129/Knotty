@@ -78,7 +78,7 @@ public class TodoStore : KnottyStore<TodoState, TodoIntent> {
 
 Knotty works best with C# `record` and `with` expressions. If you are targeting older frameworks (like .NET Framework 4.7.2+ or .NET Standard 2.0), follow these two simple steps to enable modern C# features:
 
-**Step 1: Update your** `.csproj` Set the C# language version to **9.0** or higher.
+**Step 1: Update your** `.csproj` Set the C# language version to **7.3** or higher.
 
 ```xml
 <PropertyGroup>

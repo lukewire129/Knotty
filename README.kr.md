@@ -77,11 +77,11 @@ public TodoStore() : base(new TodoState(new())) { }
 
 Knotty는 C#의 `record`와 `with` 구문을 사용할 때 가장 강력합니다. .NET Framework 4.7.2 이상이나 .NET Standard 2.0과 같은 구형 환경을 사용 중이라면, 아래 두 단계를 통해 최신 문법을 활성화할 수 있습니다.
 
-1단계: 프로젝트 파일(`.csproj`) 수정 C# 언어 버전을 **9.0** 이상으로 설정합니다.
+1단계: 프로젝트 파일(`.csproj`) 수정 C# 언어 버전을 **7.3** 이상으로 설정합니다.
 
 ```xml
 <PropertyGroup>
-  <LangVersion>9.0</LangVersion>
+  <LangVersion>7.3</LangVersion>
 </PropertyGroup>
 ```
 
