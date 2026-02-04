@@ -5,5 +5,7 @@
     <Project Path="sample/DebounceApp/DebounceApp.csproj" />
     <Project Path="sample/QueueApp/QueueApp.csproj" />
   </Folder>
+  <Project Path="src/Knotty.Generators/Knotty.Generators.csproj" />
   <Project Path="src/Knotty/Knotty.csproj" />
+  <Project Path="tests/Knotty.Tests/Knotty.Tests.csproj" />
 </Solution>

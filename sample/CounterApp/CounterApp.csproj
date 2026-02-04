@@ -6,10 +6,22 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
+
+    <!-- Generator DLL 경로 -->
+    <KnottyGeneratorsPath>..\..\src\Knotty.Generators\bin\$(Configuration)\netstandard2.0\Knotty.Generators.dll</KnottyGeneratorsPath>
+
+    <!-- Source Generator 출력 파일을 디스크에 저장 (디버깅용) -->
+    <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+    <CompilerGeneratedFilesOutputPath>$(BaseIntermediateOutputPath)\GeneratedFiles</CompilerGeneratedFilesOutputPath>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Knotty\Knotty.csproj" />
+  </ItemGroup>
+
+  <!-- 개발 시 Generator DLL 직접 참조 (NuGet 사용 시에는 Knotty 패키지가 자동 처리) -->
+  <ItemGroup>
+    <Analyzer Include="$(KnottyGeneratorsPath)" Condition="Exists('$(KnottyGeneratorsPath)')" />
   </ItemGroup>
 
 </Project>

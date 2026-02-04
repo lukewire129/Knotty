@@ -15,9 +15,40 @@
     <AssemblyName>Knotty</AssemblyName>
     <RootNamespace>Knotty</RootNamespace>
     <PackageIcon>icon.png</PackageIcon>
+
+    <!-- Generator 빌드 경로 -->
+    <KnottyGeneratorsPath>..\Knotty.Generators\bin\$(Configuration)\netstandard2.0\Knotty.Generators.dll</KnottyGeneratorsPath>
   </PropertyGroup>
 
   <ItemGroup>
     <None Include="icon.png" Pack="true" PackagePath="\" />
   </ItemGroup>
-  </Project>
+
+  <!-- Generator 프로젝트 빌드 의존성 (DLL 생성 보장) -->
+  <ItemGroup>
+    <ProjectReference Include="..\Knotty.Generators\Knotty.Generators.csproj" 
+                      PrivateAssets="all" 
+                      ReferenceOutputAssembly="false" />
+  </ItemGroup>
+
+  <!-- NuGet 패키지에 Generator DLL 포함 -->
+  <ItemGroup>
+    <None Include="$(KnottyGeneratorsPath)" 
+          Pack="true" 
+          PackagePath="analyzers/dotnet/cs" 
+          Visible="false" />
+  </ItemGroup>
+
+  <!-- NuGet 패키지에 .props 파일 포함 (Analyzer 자동 참조) -->
+  <ItemGroup>
+    <None Include="build\Knotty.props" Pack="true" PackagePath="build\" />
+  </ItemGroup>
+
+  <!-- Pack 전에 Generator 빌드 보장 -->
+  <Target Name="BuildGeneratorBeforePack" BeforeTargets="GenerateNuspec;Pack">
+    <MSBuild Projects="..\Knotty.Generators\Knotty.Generators.csproj" 
+             Targets="Build" 
+             Properties="Configuration=$(Configuration)" />
+  </Target>
+
+</Project>

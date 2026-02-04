@@ -40,7 +40,7 @@
                 Width="60"
                 Height="60"
                 Margin="10"
-                Click="CounterMinus_Click"
+                Command="{Binding DecrementCommand}"
                 Content="−"
                 Cursor="Hand"
                 FontSize="24"
@@ -71,7 +71,7 @@
                 Height="45"
                 Margin="10"
                 VerticalAlignment="Center"
-                Click="CounterReset_Click"
+                Command="{Binding ResetCommand}"
                 Content="RESET"
                 Cursor="Hand"
                 FontSize="12"
@@ -102,7 +102,7 @@
                 Width="60"
                 Height="60"
                 Margin="10"
-                Click="CounterAdd_Click"
+                Command="{Binding IncrementCommand}"
                 Content="+"
                 Cursor="Hand"
                 FontSize="24"
@@ -122,6 +122,38 @@
                         <Style.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
                                 <Setter Property="Background" Value="#40C057" />
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
+                </Button.Style>
+            </Button>
+
+            <!-- +2 버튼: CommandParameter로 값 전달 -->
+            <Button
+                Width="60"
+                Height="60"
+                Margin="10"
+                Command="{Binding IncrementByCommand}"
+                CommandParameter="2"
+                Content="+2"
+                Cursor="Hand"
+                FontSize="20"
+                Foreground="White">
+                <Button.Style>
+                    <Style TargetType="Button">
+                        <Setter Property="Background" Value="#228BE6" />
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="Button">
+                                    <Border Background="{TemplateBinding Background}" CornerRadius="30">
+                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                    </Border>
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
+                        <Style.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#1C7ED6" />
                             </Trigger>
                         </Style.Triggers>
                     </Style>

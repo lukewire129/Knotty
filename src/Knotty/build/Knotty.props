@@ -1,0 +1,6 @@
+<Project>
+  <ItemGroup>
+    <Analyzer Include="$(MSBuildThisFileDirectory)..\analyzers\dotnet\cs\Knotty.Generators.dll" 
+              Condition="Exists('$(MSBuildThisFileDirectory)..\analyzers\dotnet\cs\Knotty.Generators.dll')" />
+  </ItemGroup>
+</Project>
