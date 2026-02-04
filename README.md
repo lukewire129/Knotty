@@ -4,31 +4,29 @@
 
 Designed specifically for modern UI frameworks like **MAUI, WPF, and Avalonia,** Knotty replaces the complexity of traditional MVVM with a predictable, immutable, and AI-friendly architecture.
 
-### 🚀 Why Knotty?
+### ?? Why Knotty?
 
 - **AI-Optimized**: Explicit State and Intent structures make it easy for AI agents (GitHub Copilot, Cursor, etc.) to generate and maintain code without side effects.
 
-- **Predictable State**: Uses immutable `record` types. No more chasing down which property setter triggered a bug.
+- **Predictable State**: Uses immutable record types. No more chasing down which property setter triggered a bug.
 
-- **Boilerplate-Free**: Automatic `IsLoading` management and built-in error handling.
+- **Boilerplate-Free**: Automatic IsLoading management, built-in error handling, and Source Generator for Commands.
 
 - **Lightweight**: Target .NET Standard 2.0, making it compatible with almost all .NET environments.
 
-### 📦 Installation
+### ?? Installation
 
-```Bash
-
+```bash
 dotnet add package Knotty
 ```
 
-### 🛠 Core Concepts
+### ?? Core Concepts
 
 **1. State (The Truth)**
 
 Define your UI state as a single, immutable record.
 
-```CSharp
-
+```csharp
 public record TodoState(List<Todo> Items, string Filter = "");
 ```
 
@@ -37,7 +35,8 @@ public record TodoState(List<Todo> Items, string Filter = "");
 Define what the user can do using discriminated unions (nested records).
 
 ```csharp
-public abstract record TodoIntent {
+public abstract record TodoIntent
+{
     public record Add(string Text) : TodoIntent;
     public record Toggle(Guid Id) : TodoIntent;
 }
@@ -48,15 +47,16 @@ public abstract record TodoIntent {
 Handle all business logic in one place. `IsLoading` is managed automatically for async tasks.
 
 ```csharp
-
 using Knotty.Core;
 
-public class TodoStore : KnottyStore<TodoState, TodoIntent> {
-    protected override async Task HandleIntent(TodoIntent intent) {
-        switch (intent) {
+public class TodoStore : KnottyStore<TodoState, TodoIntent>
+{
+    protected override async Task HandleIntent(TodoIntent intent, CancellationToken ct)
+    {
+        switch (intent)
+        {
             case TodoIntent.Add add:
-                // IsLoading is true here
-                var newItem = await _api.CreateAsync(add.Text);
+                var newItem = await _api.CreateAsync(add.Text, ct);
                 State = State with { Items = State.Items.Append(newItem).ToList() };
                 break;
         }
@@ -64,25 +64,67 @@ public class TodoStore : KnottyStore<TodoState, TodoIntent> {
 }
 ```
 
-### ✨ Key Features
+### ? Key Features
 
-- **Automatic Loading**: The `IsLoading` property toggles automatically while `HandleIntent` is running.
+| Feature | Description |
+|---------|-------------|
+| **Automatic Loading** | `IsLoading` toggles automatically while `HandleIntent` is running |
+| **KnottyBus** | Built-in Event Bus for cross-Store communication |
+| **Error Handling** | Implements `INotifyDataErrorInfo`. Exceptions in `HandleIntent` are captured |
+| **Command Generator** | `[IntentCommand]` attribute auto-generates `ICommand` properties |
+| **Intent Handling Strategies** | Block, Queue, Debounce, CancelPrevious, Parallel |
+| **Effects** | One-time side effects (navigation, toast) without polluting State |
 
-- **KnottyBus**: A built-in Event Bus for cross-Store communication.
+### ?? Command Generator (Source Generator)
 
-- **Error Handling**: Automatically implements `INotifyDataErrorInfo`. Any exception in `HandleIntent` is captured.
+```csharp
+using Knotty.Core.Attributes;
 
-- **LINQ Friendly**: Designed to work seamlessly with LINQ for state transitions.
+public partial class CounterStore : KnottyStore<CounterState, CounterIntent>
+{
+    [IntentCommand]
+    private readonly CounterIntent.Increment _increment = new();
 
-### 💡 Tips for .NET Standard 2.0 / Framework Users
+    [AsyncIntentCommand(CanExecute = nameof(CanReset))]
+    private readonly CounterIntent.Reset _reset = new();
+
+    // With parameter (XAML CommandParameter)
+    [IntentCommand]
+    private CounterIntent.IncrementBy CreateIncrementBy(string value) => new(int.Parse(value));
+
+    private bool CanReset() => !IsLoading;
+}
+```
+
+Generated:
+```csharp
+public ICommand IncrementCommand => ...;
+public IAsyncCommand ResetCommand => ...;
+public ICommand IncrementByCommand => ...;
+```
+
+### ?? Documentation
+
+For detailed documentation, see the skill files:
+
+| Topic | File |
+|-------|------|
+| Basic Usage | [mnt/skills/knotty/Knotty.md](mnt/skills/knotty/Knotty.md) |
+| KnottyBus | [mnt/skills/knotty/Knotty.Bus.md](mnt/skills/knotty/Knotty.Bus.md) |
+| Debugger | [mnt/skills/knotty/Knotty.Debugger.md](mnt/skills/knotty/Knotty.Debugger.md) |
+| Command | [mnt/skills/knotty/Knotty.Command.md](mnt/skills/knotty/Knotty.Command.md) |
+| Effect | [mnt/skills/knotty/Knotty.Effect.md](mnt/skills/knotty/Knotty.Effect.md) |
+| Intent Handling | [mnt/skills/knotty/Knotty.IntentHandling.md](mnt/skills/knotty/Knotty.IntentHandling.md) |
+
+### ?? Tips for .NET Standard 2.0 / Framework Users
 
 Knotty works best with C# `record` and `with` expressions. If you are targeting older frameworks (like .NET Framework 4.7.2+ or .NET Standard 2.0), follow these two simple steps to enable modern C# features:
 
-**Step 1: Update your** `.csproj` Set the C# language version to **7.3** or higher.
+**Step 1: Update your** `.csproj` Set the C# language version to **9.0** or higher.
 
 ```xml
 <PropertyGroup>
-  <LangVersion>7.3</LangVersion>
+  <LangVersion>9.0</LangVersion>
 </PropertyGroup>
 ```
 
@@ -97,6 +139,6 @@ namespace System.Runtime.CompilerServices
 }
 ```
 
-### 📄 License
+### ?? License
 
 MIT License. Feel free to use and contribute!
