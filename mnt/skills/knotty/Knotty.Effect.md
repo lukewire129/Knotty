@@ -68,20 +68,97 @@ public class OrderStore : KnottyStore<OrderState, OrderIntent>
 
 ### 3. Handle Effect in View
 
+**Option A: IEffectSource (Recommended for Auto-DI)**
+
+For auto-DI scenarios (Prism, DryIoc, etc.) where DataContext is set automatically:
+
+```csharp
+public partial class OrderWindow : Window
+{
+    private IDisposable? _effectSubscription;
+
+    public OrderWindow()
+    {
+        InitializeComponent();
+        DataContextChanged += OnDataContextChanged;
+        Unloaded += OnUnloaded;
+    }
+
+    private void OnDataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
+    {
+        // Unsubscribe from old DataContext
+        _effectSubscription?.Dispose();
+
+        // Subscribe to new DataContext if it supports Effects
+        if (e.NewValue is IEffectSource source)
+        {
+            _effectSubscription = source.Effects.Subscribe<AppEffect>(HandleEffect);
+        }
+    }
+
+    private void OnUnloaded(object sender, RoutedEventArgs e)
+    {
+        _effectSubscription?.Dispose();
+    }
+
+    private void HandleEffect(AppEffect effect)
+    {
+        switch (effect)
+        {
+            case AppEffect.ShowToast toast:
+                ShowToastNotification(toast.Message, toast.Type);
+                break;
+
+            case AppEffect.NavigateTo nav:
+                NavigationService.Navigate(nav.Route);
+                break;
+
+            case AppEffect.ShowDialog dialog:
+                MessageBox.Show(dialog.Message, dialog.Title);
+                break;
+
+            case AppEffect.CloseWindow:
+                this.Close();
+                break;
+        }
+    }
+}
+```
+
+**Option B: Direct Store Reference**
+
+For manual Store creation:
+
 ```csharp
 public partial class OrderWindow : Window
 {
     private readonly OrderStore _store;
+    private readonly IDisposable _effectSubscription;
 
     public OrderWindow()
     {
         InitializeComponent();
         _store = new OrderStore();
         DataContext = _store;
+
+        // Subscribe to effects
+        _effectSubscription = _store.Effects.Subscribe<AppEffect>(HandleEffect);
+
+        Unloaded += (s, e) => _effectSubscription.Dispose();
+    }
+
+    private void HandleEffect(AppEffect effect)
+    {
+        // Same switch as above
     }
 }
+```
 
-// Custom Store with Effect handling
+**Option C: OnEffect Override (No subscription needed)**
+
+Handle effects directly in Store subclass:
+
+```csharp
 public class OrderStore : KnottyStore<OrderState, OrderIntent>
 {
     public event Action<IEffect>? EffectEmitted;
@@ -89,39 +166,6 @@ public class OrderStore : KnottyStore<OrderState, OrderIntent>
     protected override void OnEffect(IEffect effect)
     {
         EffectEmitted?.Invoke(effect);
-    }
-}
-```
-
-```csharp
-// In View code-behind
-public OrderWindow()
-{
-    InitializeComponent();
-    _store = new OrderStore();
-    _store.EffectEmitted += HandleEffect;
-    DataContext = _store;
-}
-
-private void HandleEffect(IEffect effect)
-{
-    switch (effect)
-    {
-        case AppEffect.ShowToast toast:
-            ShowToastNotification(toast.Message, toast.Type);
-            break;
-
-        case AppEffect.NavigateTo nav:
-            NavigationService.Navigate(nav.Route);
-            break;
-
-        case AppEffect.ShowDialog dialog:
-            MessageBox.Show(dialog.Message, dialog.Title);
-            break;
-
-        case AppEffect.CloseWindow:
-            this.Close();
-            break;
     }
 }
 ```
@@ -136,13 +180,37 @@ public interface IEffect;
 
 Marker interface for all effects.
 
+### IEffectSource Interface
+
+```csharp
+public interface IEffectSource
+{
+    IObservable<IEffect> Effects { get; }
+}
+```
+
+Exposes Effect stream for View subscription. `KnottyStore` implements this interface.
+
+### EffectExtensions
+
+```csharp
+// Subscribe to specific effect type
+source.Effects.Subscribe<AppEffect>(effect => { ... });
+
+// Subscribe to all effects
+source.Effects.Subscribe(effect => { ... });
+```
+
 ### Store Methods
 
 ```csharp
+// Observable stream of effects (IEffectSource)
+public IObservable<IEffect> Effects { get; }
+
 // Emit an effect
 protected void EmitEffect(IEffect effect);
 
-// Override to handle effects
+// Override to handle effects directly in Store (optional)
 protected virtual void OnEffect(IEffect effect) { }
 ```
 
