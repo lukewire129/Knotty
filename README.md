@@ -4,7 +4,7 @@
 
 Designed specifically for modern UI frameworks like **MAUI, WPF, and Avalonia,** Knotty replaces the complexity of traditional MVVM with a predictable, immutable, and AI-friendly architecture.
 
-### ?? Why Knotty?
+### 🚀 Why Knotty?
 
 - **AI-Optimized**: Explicit State and Intent structures make it easy for AI agents (GitHub Copilot, Cursor, etc.) to generate and maintain code without side effects.
 
@@ -14,13 +14,13 @@ Designed specifically for modern UI frameworks like **MAUI, WPF, and Avalonia,**
 
 - **Lightweight**: Target .NET Standard 2.0, making it compatible with almost all .NET environments.
 
-### ?? Installation
+### 📦 Installation
 
 ```bash
 dotnet add package Knotty
 ```
 
-### ?? Core Concepts
+### 🛠 Core Concepts
 
 **1. State (The Truth)**
 
@@ -64,7 +64,7 @@ public class TodoStore : KnottyStore<TodoState, TodoIntent>
 }
 ```
 
-### ? Key Features
+### ✨ Key Features
 
 | Feature | Description |
 |---------|-------------|
@@ -75,7 +75,7 @@ public class TodoStore : KnottyStore<TodoState, TodoIntent>
 | **Intent Handling Strategies** | Block, Queue, Debounce, CancelPrevious, Parallel |
 | **Effects** | One-time side effects (navigation, toast) without polluting State |
 
-### ?? Command Generator (Source Generator)
+### 🔧 Command Generator (Source Generator)
 
 ```csharp
 using Knotty.Core.Attributes;
@@ -103,7 +103,7 @@ public IAsyncCommand ResetCommand => ...;
 public ICommand IncrementByCommand => ...;
 ```
 
-### ?? Documentation
+### 📚 Documentation
 
 For detailed documentation, see the skill files:
 
@@ -116,7 +116,7 @@ For detailed documentation, see the skill files:
 | Effect | [mnt/skills/knotty/Knotty.Effect.md](mnt/skills/knotty/Knotty.Effect.md) |
 | Intent Handling | [mnt/skills/knotty/Knotty.IntentHandling.md](mnt/skills/knotty/Knotty.IntentHandling.md) |
 
-### ?? Tips for .NET Standard 2.0 / Framework Users
+### 💡 Tips for .NET Standard 2.0 / Framework Users
 
 Knotty works best with C# `record` and `with` expressions. If you are targeting older frameworks (like .NET Framework 4.7.2+ or .NET Standard 2.0), follow these two simple steps to enable modern C# features:
 
@@ -139,6 +139,6 @@ namespace System.Runtime.CompilerServices
 }
 ```
 
-### ?? License
+### 📄 License
 
 MIT License. Feel free to use and contribute!
