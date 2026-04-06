@@ -71,14 +71,14 @@ public partial class CounterStore : KnottyStore<CounterState, CounterIntent>
 
 | Chapter | Contents |
 |---------|----------|
-| [Getting Started](en/getting-started) | Installation, minimal example, core flow |
-| [Core Concepts](en/core-concepts) | State · Intent · Store design principles |
-| [Platform Setup](en/platform-setup) | WPF · MAUI · Avalonia bootstrapping |
-| [View Binding](en/view-binding) | DataContext, XAML bindings, Effect subscription |
-| [Commands](en/commands) | Source Generator, `[IntentCommand]`, parameters |
-| [Intent Handling](en/intent-handling) | Block · Queue · Debounce · CancelPrevious · Parallel |
-| [Effects](en/effects) | Navigation · Toast · Dialog patterns |
-| [Error Handling](en/error-handling) | Exception handling, cancellation restore, HasErrors |
-| [KnottyBus](en/knottybus) | Store-to-Store communication |
-| [Debugging](en/debugging) | KnottyDebugger, logs |
-| [API Reference](en/api-reference) | Full public API signatures |
+| [Getting Started](/en/getting-started) | Installation, minimal example, core flow |
+| [Core Concepts](/en/core-concepts) | State · Intent · Store design principles |
+| [Platform Setup](/en/platform-setup) | WPF · MAUI · Avalonia bootstrapping |
+| [View Binding](/en/view-binding) | DataContext, XAML bindings, Effect subscription |
+| [Commands](/en/commands) | Source Generator, `[IntentCommand]`, parameters |
+| [Intent Handling](/en/intent-handling) | Block · Queue · Debounce · CancelPrevious · Parallel |
+| [Effects](/en/effects) | Navigation · Toast · Dialog patterns |
+| [Error Handling](/en/error-handling) | Exception handling, cancellation restore, HasErrors |
+| [KnottyBus](/en/knottybus) | Store-to-Store communication |
+| [Debugging](/en/debugging) | KnottyDebugger, logs |
+| [API Reference](/en/api-reference) | Full public API signatures |
