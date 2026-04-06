@@ -7,9 +7,7 @@ Knotty provides `IntentCommand` and `AsyncIntentCommand` for XAML binding, with 
 ## Namespace
 
 ```csharp
-using Knotty.Core;
-using Knotty.Core.Commands;
-using Knotty.Core.Attributes;  // For Source Generator
+using Knotty;  // ICommand helpers, IAsyncCommand, [IntentCommand], [AsyncIntentCommand] 모두 포함
 ```
 
 ## Manual Command Creation
@@ -52,14 +50,7 @@ public CounterStore() : base(new CounterState(0))
 
 ### Setup
 
-Add Knotty.Generators analyzer reference:
-
-```xml
-<ItemGroup>
-  <ProjectReference Include="path\to\Knotty.csproj" />
-  <Analyzer Include="path\to\Knotty.Generators.dll" />
-</ItemGroup>
-```
+`dotnet add package Knotty` 시 analyzer가 NuGet 패키지에 포함되어 자동 적용됨. 별도 설정 불필요.
 
 ### Field-Based Command (No Parameter)
 

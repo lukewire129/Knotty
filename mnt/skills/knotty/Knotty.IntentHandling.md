@@ -7,7 +7,7 @@ Knotty provides multiple strategies for handling concurrent Intent dispatches.
 ## Namespace
 
 ```csharp
-using Knotty.Core;
+using Knotty;
 ```
 
 ## Strategies

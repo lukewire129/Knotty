@@ -1,95 +1,95 @@
-# SKILL: Knotty Framework (C# MVI)
+---
+name: knotty
+description: >
+  C# MVI state management framework. Use when working with KnottyStore,
+  KnottyBus, IEffect, IntentHandlingStrategy, or "using Knotty;".
+triggers:
+  - KnottyStore
+  - KnottyBus
+  - IEffect
+  - IntentHandlingStrategy
+  - Knotty MVI
+  - "using Knotty;"
+---
 
-## Overview
+# Knotty Framework — Router
 
-Knotty is an AI-First MVI (Model-View-Intent) framework for C# (.NET Standard 2.0+).
-It enforces a single source of truth and unidirectional data flow, specifically optimized for LLM code generation.
+## Decision Tree
+
+```
+무엇을 만들고 있나?
+│
+├─ Store 신규 작성                    → Knotty.md
+├─ DI 등록 / 플랫폼 bootstrapping    → Knotty.Setup.md
+├─ View에 Store 바인딩               → Knotty.Binding.md
+├─ XAML Command 생성 / 바인딩        → Knotty.Command.md
+├─ 네비게이션 / Toast / Dialog       → Knotty.Effect.md
+├─ 검색 debounce / 취소 / 동시 처리  → Knotty.IntentHandling.md
+├─ 에러 처리 / HasErrors / 롤백      → Knotty.ErrorHandling.md
+├─ Store 간 통신 (Bus)               → Knotty.Bus.md
+└─ 디버깅 / 로그                     → Knotty.Debugger.md
+```
+
+## Golden Path — 기능 하나 추가할 때 순서
+
+```
+1. State record 정의
+       public record MyState(int Count = 0);
+
+2. Intent record 정의
+       public abstract record MyIntent
+       {
+           public record Increment : MyIntent;
+       }
+
+3. Store 구현
+       public partial class MyStore : KnottyStore<MyState, MyIntent>
+       {
+           public MyStore() : base(new MyState()) { }
+           protected override async Task HandleIntent(MyIntent intent, CancellationToken ct) { ... }
+       }
+
+4. DI 등록  →  Knotty.Setup.md 참고 (플랫폼마다 다름)
+
+5. View에서 DataContext 설정 + Effect 구독  →  Knotty.Binding.md 참고
+```
 
 ## Quick Reference
 
-| Feature | Skill File |
-|---------|-----------|
-| Basic Store, State, Intent | [Knotty.md](./Knotty.md) |
-| Cross-Store Communication | [Knotty.Bus.md](./Knotty.Bus.md) |
-| Debugging & Logging | [Knotty.Debugger.md](./Knotty.Debugger.md) |
-| Command Binding (XAML) | [Knotty.Command.md](./Knotty.Command.md) |
-| Side Effects (Navigation, Toast) | [Knotty.Effect.md](./Knotty.Effect.md) |
-| Concurrent Intent Handling | [Knotty.IntentHandling.md](./Knotty.IntentHandling.md) |
+| 주제 | 파일 |
+|------|------|
+| State / Intent / Store 시그니처 | [Knotty.md](./Knotty.md) |
+| DI 등록 (MAUI / WPF / Avalonia) | [Knotty.Setup.md](./Knotty.Setup.md) |
+| View 바인딩 패턴 | [Knotty.Binding.md](./Knotty.Binding.md) |
+| Command 생성 / Source Generator | [Knotty.Command.md](./Knotty.Command.md) |
+| Side Effect (navigation, toast) | [Knotty.Effect.md](./Knotty.Effect.md) |
+| 동시성 전략 (debounce, cancel) | [Knotty.IntentHandling.md](./Knotty.IntentHandling.md) |
+| 에러 처리 패턴 | [Knotty.ErrorHandling.md](./Knotty.ErrorHandling.md) |
+| Store 간 통신 | [Knotty.Bus.md](./Knotty.Bus.md) |
+| 디버깅 | [Knotty.Debugger.md](./Knotty.Debugger.md) |
 
-## Installation
+## Rules
 
-```bash
-dotnet add package Knotty
-```
+### Always
+- `using Knotty;` 하나로 모든 타입 접근 가능. 다른 Knotty 하위 namespace 불필요.
+- Source Generator 쓸 때는 Store 클래스에 `partial` 필수
+- `HandleIntent` 내부 모든 `await`에 `ct` 전달
+- View에서 Effect 구독 시 `Unloaded`/`OnNavigatedFrom`에서 반드시 `.Dispose()`
 
-## Namespace
+### Never
+- `[ObservableProperty]`, `[RelayCommand]` — CommunityToolkit과 혼용 금지
+- `State.SomeProperty = value` — 직접 mutation. 반드시 `State = State with { ... }`
+- State record 안에 `bool ShowToast`, `string NavigateTo` 같은 일회성 플래그
+- `State` 필드에 `IEffect` 인스턴스 저장
+- `HandleIntent` 안에서 `_ = SomeAsync()` fire-and-forget (ct 전파 끊김)
 
-```csharp
-using Knotty.Core;
-```
+## Common Mistakes (에이전트가 자주 저지르는 실수)
 
-## Minimal Example
-
-```csharp
-// State
-public record CounterState(int Count);
-
-// Intent
-public abstract record CounterIntent
-{
-    public record Increment : CounterIntent;
-    public record Decrement : CounterIntent;
-}
-
-// Store
-public class CounterStore : KnottyStore<CounterState, CounterIntent>
-{
-    public CounterStore() : base(new CounterState(0)) { }
-
-    protected override async Task HandleIntent(CounterIntent intent, CancellationToken ct)
-    {
-        State = intent switch
-        {
-            CounterIntent.Increment => State with { Count = State.Count + 1 },
-            CounterIntent.Decrement => State with { Count = State.Count - 1 },
-            _ => State
-        };
-    }
-}
-```
-
-## Key Principles
-
-1. **State is Immutable** - Use `record` and `with` expressions
-2. **Intent is Explicit** - All actions go through Intents
-3. **Store is Single Source** - All logic in `HandleIntent`
-4. **No Side Effects in State** - Use `IEffect` for navigation/toasts
-
-## Agent Instructions
-
-### DO ??
-- Use `record` for State and Intent
-- Use `with` expressions for State updates
-- Use `partial class` for Source Generator
-- Pass `CancellationToken` to async operations
-- Use `IEffect` for one-time side effects
-
-### DON'T ??
-- Mutate State properties directly
-- Use CommunityToolkit.Mvvm attributes
-- Put navigation/toast flags in State
-- Ignore `CancellationToken` in async handlers
-
-## C# Compatibility
-
-For .NET Standard 2.0 / .NET Framework, add this polyfill:
-
-```csharp
-namespace System.Runtime.CompilerServices
-{
-    using System.ComponentModel;
-    [EditorBrowsable(EditorBrowsableState.Never)]
-    internal static class IsExternalInit { }
-}
-```
-
+| 실수 | 올바른 방법 |
+|------|------------|
+| `[ObservableProperty] public int Count { ... }` | State record 필드로 관리, Store가 INPC 자동 구현 |
+| `State.Count++` 직접 mutation | `State = State with { Count = State.Count + 1 }` |
+| `await Task.Delay(1000)` — ct 없이 | `await Task.Delay(1000, ct)` |
+| Store에 `partial` 없이 `[IntentCommand]` 사용 | `public partial class MyStore : KnottyStore<...>` |
+| Effect를 `bool IsDialogOpen`으로 State에 넣음 | `EmitEffect(new MyEffect.ShowDialog(...))` |
+| `KnottyBus.Subscribe` 없이 Bus 메시지 수신 기대 | 생성자에서 `SubscribeToBus()` 명시적 호출 |

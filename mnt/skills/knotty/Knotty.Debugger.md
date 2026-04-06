@@ -7,7 +7,7 @@
 ## Namespace
 
 ```csharp
-using Knotty.Core;
+using Knotty;
 ```
 
 ## Enable Debugging

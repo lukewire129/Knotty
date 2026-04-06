@@ -1,125 +1,176 @@
-# SKILL: Knotty Basic
-
-## Overview
-
-Knotty is an AI-First MVI (Model-View-Intent) framework for C# (.NET Standard 2.0+).
-
-## Installation
-
-```bash
-dotnet add package Knotty
-```
+# Knotty — State / Intent / Store
 
 ## Namespace
 
 ```csharp
-using Knotty.Core;
+using Knotty;  // 모든 Knotty 타입 포함
 ```
 
-## Core Concepts
-
-### 1. State (Immutable Data)
+## KnottyStore 시그니처
 
 ```csharp
-public record TodoState(List<Todo> Items, string Filter = "");
+public abstract partial class KnottyStore<TState, TIntent>
+    : INotifyPropertyChanged, INotifyPropertyChanging,
+      INotifyDataErrorInfo, IEffectSource, IDisposable
+    where TState : class   // record 권장 — KNOT001 analyzer 경고
 ```
 
-- Use `record` for automatic immutability
-- Update with `with` expressions
-
-### 2. Intent (Explicit Action)
+### 생성자
 
 ```csharp
-public abstract record TodoIntent
+protected KnottyStore(TState initialState)
+// initialState가 null이면 ArgumentNullException
+```
+
+### State 프로퍼티
+
+```csharp
+public TState State { get; protected set; }
+```
+
+- `State = State with { ... }` 대입 시 **자동으로** `PropertyChanging` → `PropertyChanged` 발생
+- 같은 참조값으로 대입하면 이벤트 발생 안 함 (reference equality 비교)
+- UI 바인딩은 `{Binding State.Count}` 형태로 접근
+
+### IsLoading
+
+```csharp
+public bool IsLoading { get; }  // private set
+```
+
+- `ExecuteIntent` 진입 시 자동 `true`, 종료 시 자동 `false`
+- **Parallel 전략 제외** — `ExecuteIntentParallel`은 IsLoading 건드리지 않음
+- Block 전략: `IsLoading == true`이면 새 intent 무시
+
+### Dispatch
+
+```csharp
+public void Dispatch(TIntent intent)          // fire-and-forget, 예외는 OnDispatchError로
+public async Task DispatchAsync(TIntent intent) // await 가능, 완료까지 대기
+```
+
+### HandleIntent
+
+```csharp
+protected abstract Task HandleIntent(TIntent intent, CancellationToken ct = default);
+```
+
+- `ct`는 `CancelPrevious` 전략 시 실제로 취소됨
+- **모든 `await`에 `ct` 전달 필수** — 빼먹으면 취소 신호 전파 안 됨
+
+### 에러 훅
+
+```csharp
+protected virtual void OnHandleError(Exception ex) { }         // intent 실행 중 예외
+protected virtual void OnDispatchError(TIntent intent, Exception ex) { } // GetStrategy 등 프레임워크 레벨 예외
+```
+
+### Effect
+
+```csharp
+protected void EmitEffect(IEffect effect);              // Store에서 방출
+public IObservable<IEffect> Effects { get; }            // View에서 구독
+protected virtual void OnEffect(IEffect effect) { }    // Store 내부에서 처리 (선택)
+```
+
+## State 정의 패턴
+
+```csharp
+// 기본
+public record CounterState(int Count = 0, string Message = "");
+
+// 컬렉션 포함
+public record TodoState(
+    IReadOnlyList<TodoItem> Items,
+    string Filter = "All"
+);
+
+// 중첩 record
+public record OrderState(
+    OrderInfo? CurrentOrder,
+    IReadOnlyList<OrderItem> Cart,
+    CheckoutStep Step = CheckoutStep.Cart
+);
+```
+
+> TState는 반드시 record 사용. mutable class 사용 시 `KNOT001` 경고 발생.
+> record 프로퍼티에 `{ get; set; }` 있으면 `KNOT002` 경고 발생.
+
+## Intent 정의 패턴
+
+```csharp
+public abstract record CounterIntent
 {
-    public record Add(string Text) : TodoIntent;
-    public record Toggle(Guid Id) : TodoIntent;
-    public record Delete(Guid Id) : TodoIntent;
+    public record Increment : CounterIntent;
+    public record Decrement : CounterIntent;
+    public record IncrementBy(int Value) : CounterIntent;
+    public record Reset : CounterIntent;
 }
 ```
 
-- Represents "What happened", not "How to do it"
+- 최상위 abstract record → nested record 패턴 (C# discriminated union 관용구)
+- 데이터 없으면 `record` (파라미터 없이), 데이터 있으면 primary constructor 사용
 
-### 3. Store (Logic Hub)
+## Store 구현 패턴
 
 ```csharp
-public class TodoStore : KnottyStore<TodoState, TodoIntent>
+public partial class CounterStore : KnottyStore<CounterState, CounterIntent>
 {
-    public TodoStore() : base(new TodoState(new List<Todo>())) { }
+    public CounterStore() : base(new CounterState()) { }
 
-    protected override async Task HandleIntent(TodoIntent intent, CancellationToken ct)
+    protected override async Task HandleIntent(CounterIntent intent, CancellationToken ct = default)
     {
         switch (intent)
         {
-            case TodoIntent.Add add:
-                var newItem = new Todo(Guid.NewGuid(), add.Text);
-                State = State with { Items = State.Items.Append(newItem).ToList() };
+            case CounterIntent.Increment:
+                State = State with { Count = State.Count + 1 };
                 break;
 
-            case TodoIntent.Toggle toggle:
-                State = State with
-                {
-                    Items = State.Items.Select(x =>
-                        x.Id == toggle.Id ? x with { Done = !x.Done } : x).ToList()
-                };
+            case CounterIntent.IncrementBy by:
+                State = State with { Count = State.Count + by.Value };
                 break;
 
-            case TodoIntent.Delete delete:
-                State = State with
-                {
-                    Items = State.Items.Where(x => x.Id != delete.Id).ToList()
-                };
+            case CounterIntent.Reset:
+                // 비동기 예시 — ct 반드시 전달
+                await Task.Delay(500, ct);
+                State = State with { Count = 0 };
                 break;
         }
     }
 }
 ```
 
-## Built-in Features
-
-### IsLoading
-
-Automatically `true` while `HandleIntent` is running:
+## State 업데이트 패턴
 
 ```csharp
-// In XAML
-<Button Content="Save" IsEnabled="{Binding IsLoading, Converter={StaticResource InverseBool}}" />
-<ProgressBar Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisibility}}" />
-```
-
-### INotifyPropertyChanged
-
-Store automatically implements:
-- `INotifyPropertyChanged`
-- `INotifyPropertyChanging`
-- `INotifyDataErrorInfo`
-
-### State Updates
-
-```csharp
-// Single property
+// 단일 프로퍼티
 State = State with { Count = State.Count + 1 };
 
-// Multiple properties
+// 복수 프로퍼티
 State = State with { Count = 0, Message = "Reset!" };
 
-// Collection - Add
-State = State with { Items = State.Items.Append(newItem).ToList() };
+// 컬렉션 — 추가
+State = State with { Items = [..State.Items, newItem] };
 
-// Collection - Remove
+// 컬렉션 — 제거
 State = State with { Items = State.Items.Where(x => x.Id != id).ToList() };
 
-// Collection - Update
-State = State with 
-{ 
-    Items = State.Items.Select(x => x.Id == id ? x with { Name = "New" } : x).ToList() 
+// 컬렉션 — 수정
+State = State with
+{
+    Items = State.Items.Select(x => x.Id == id ? x with { Done = !x.Done } : x).ToList()
 };
 ```
 
-## Agent Instructions
+## .NET Standard 2.0 / .NET Framework 호환 폴리필
 
-- ✅ Always use `using Knotty.Core;`
-- ✅ Use `record` for State and Intent
-- ✅ Update State only via `with` expressions
-- ❌ DON'T mutate State properties directly
-- ❌ DON'T use CommunityToolkit.Mvvm attributes
+record의 `init` 키워드 사용 시 필요:
+
+```csharp
+namespace System.Runtime.CompilerServices
+{
+    using System.ComponentModel;
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    internal static class IsExternalInit { }
+}
+```

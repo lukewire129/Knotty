@@ -7,19 +7,8 @@
 ## Namespace
 
 ```csharp
-using Knotty;       // IEffect
-using Knotty.Core;  // KnottyStore
+using Knotty;  // IEffect, KnottyStore, IEffectSource 모두 포함
 ```
-
-## Concept
-
-**State** = What to display (persistent, bindable)
-**Effect** = What to do once (navigation, toast, dialog)
-
-Effects are NOT stored in State because:
-- They're one-time actions
-- They don't represent UI state
-- They shouldn't trigger re-renders
 
 ## Usage
 
