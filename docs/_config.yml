@@ -1,36 +1,3 @@
-title: Knotty
-description: C# MVI Framework for MAUI, WPF, and Avalonia
-theme: just-the-docs
-
-url: "https://lukewire129.github.io"
-baseurl: "/knotty"
-
-color_scheme: dark
-
-# Search
-search_enabled: true
-search:
-  heading_level: 2
-  previews: 2
-
-# Navigation
-nav_sort: order
-
-# Footer
-footer_content: "MIT License &copy; 2024 lukewire129"
-
-# Aux links
-aux_links:
-  "GitHub":
-    - "https://github.com/lukewire129/knotty"
-  "NuGet":
-    - "https://www.nuget.org/packages/Knotty"
-
-aux_links_new_tab: true
-
-# Back to top
-back_to_top: true
-back_to_top_text: "Back to top"
-
-plugins:
-  - jekyll-seo-tag
+# This file is intentionally minimal.
+# The docs site uses Docsify (client-side rendering), not Jekyll.
+# .nojekyll disables Jekyll processing on GitHub Pages.

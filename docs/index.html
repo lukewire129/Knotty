@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>🧶 Knotty Docs</title>
+  <meta name="description" content="C# MVI Framework for MAUI, WPF, and Avalonia">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧶</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/docsify@4/lib/themes/vue.css">
+
+  <style>
+    /* ============================================================
+       Catppuccin Mocha palette
+    ============================================================ */
+    :root {
+      --base:     #1e1e2e;
+      --mantle:   #181825;
+      --crust:    #11111b;
+      --surface0: #313244;
+      --surface1: #45475a;
+      --surface2: #585b70;
+      --overlay0: #6c7086;
+      --text:     #cdd6f4;
+      --subtext1: #bac2de;
+      --subtext0: #a6adc8;
+      --lavender: #b4befe;
+      --mauve:    #cba6f7;
+      --pink:     #f5c2e7;
+      --teal:     #94e2d5;
+      --sky:      #89dceb;
+      --sapphire: #74c7ec;
+      --blue:     #89b4fa;
+      --green:    #a6e3a1;
+      --yellow:   #f9e2af;
+      --peach:    #fab387;
+      --red:      #f38ba8;
+    }
+
+    /* ============================================================
+       Base
+    ============================================================ */
+    * { box-sizing: border-box; }
+
+    body {
+      background: var(--base) !important;
+      color: var(--text) !important;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ============================================================
+       Sidebar
+    ============================================================ */
+    .sidebar {
+      background: var(--mantle) !important;
+      border-right: 1px solid var(--surface0) !important;
+      padding-top: 0 !important;
+    }
+
+    .sidebar > h1 {
+      background: linear-gradient(135deg, var(--mauve), var(--lavender));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      font-size: 1.5em !important;
+      font-weight: 800 !important;
+      padding: 1.2em 1em 0.8em !important;
+      border-bottom: 1px solid var(--surface0);
+      letter-spacing: -0.5px;
+    }
+
+    .app-name-link {
+      background: linear-gradient(135deg, var(--mauve), var(--lavender));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      font-size: 1.4em !important;
+      font-weight: 800 !important;
+      letter-spacing: -0.5px;
+    }
+
+    .sidebar-nav {
+      padding: 0.5em 0 2em !important;
+    }
+
+    .sidebar-nav li {
+      margin: 0 !important;
+    }
+
+    .sidebar-nav > ul > li > p {
+      color: var(--overlay0) !important;
+      font-size: 0.7em !important;
+      font-weight: 700 !important;
+      letter-spacing: 1.5px !important;
+      text-transform: uppercase !important;
+      padding: 1.2em 1.2em 0.3em !important;
+      margin: 0 !important;
+    }
+
+    .sidebar-nav a {
+      color: var(--subtext0) !important;
+      font-size: 0.9em !important;
+      padding: 0.35em 1.2em !important;
+      display: block;
+      border-radius: 0 6px 6px 0;
+      margin-right: 0.5em;
+      transition: color 0.15s, background 0.15s;
+      text-decoration: none !important;
+    }
+
+    .sidebar-nav a:hover {
+      color: var(--text) !important;
+      background: var(--surface0) !important;
+    }
+
+    .sidebar-nav li.active > a,
+    .sidebar-nav a.active {
+      color: var(--mauve) !important;
+      background: color-mix(in srgb, var(--mauve) 12%, transparent) !important;
+      font-weight: 600 !important;
+    }
+
+    /* ============================================================
+       Search
+    ============================================================ */
+    .search {
+      padding: 0.8em 1em !important;
+      border-bottom: 1px solid var(--surface0) !important;
+    }
+
+    .search input {
+      background: var(--surface0) !important;
+      color: var(--text) !important;
+      border: 1px solid var(--surface1) !important;
+      border-radius: 8px !important;
+      padding: 0.5em 0.8em !important;
+      font-family: inherit !important;
+      font-size: 0.85em !important;
+      width: 100% !important;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .search input:focus {
+      border-color: var(--mauve) !important;
+      outline: none !important;
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--mauve) 20%, transparent) !important;
+    }
+
+    .search input::placeholder { color: var(--overlay0) !important; }
+
+    .search-keyword {
+      color: var(--mauve) !important;
+      font-weight: 600 !important;
+    }
+
+    .results-panel a {
+      color: var(--text) !important;
+    }
+
+    /* ============================================================
+       Content
+    ============================================================ */
+    .content {
+      background: var(--base) !important;
+    }
+
+    .markdown-section {
+      max-width: 860px !important;
+      color: var(--text) !important;
+      padding: 2em 3em !important;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .markdown-section { animation: fadeIn 0.25s ease; }
+
+    /* ============================================================
+       Headings
+    ============================================================ */
+    .markdown-section h1 {
+      color: var(--mauve) !important;
+      font-size: 2.2em !important;
+      font-weight: 800 !important;
+      letter-spacing: -0.5px;
+      border-bottom: 2px solid var(--surface0) !important;
+      padding-bottom: 0.4em !important;
+      margin-bottom: 1em !important;
+    }
+
+    .markdown-section h2 {
+      color: var(--lavender) !important;
+      font-weight: 700 !important;
+      border-bottom: 1px solid var(--surface0) !important;
+      padding-bottom: 0.3em !important;
+    }
+
+    .markdown-section h3 { color: var(--blue) !important; font-weight: 600 !important; }
+    .markdown-section h4 { color: var(--sky) !important; }
+
+    /* ============================================================
+       Links
+    ============================================================ */
+    .markdown-section a {
+      color: var(--sapphire) !important;
+      text-decoration: none !important;
+      border-bottom: 1px dashed color-mix(in srgb, var(--sapphire) 50%, transparent);
+      transition: color 0.15s, border-color 0.15s;
+    }
+
+    .markdown-section a:hover {
+      color: var(--mauve) !important;
+      border-bottom-color: var(--mauve) !important;
+    }
+
+    /* ============================================================
+       Inline code
+    ============================================================ */
+    .markdown-section code {
+      background: var(--surface0) !important;
+      color: var(--peach) !important;
+      border: 1px solid var(--surface1) !important;
+      padding: 0.15em 0.45em !important;
+      border-radius: 5px !important;
+      font-family: 'JetBrains Mono', 'Fira Code', monospace !important;
+      font-size: 0.86em !important;
+    }
+
+    /* ============================================================
+       Code blocks
+    ============================================================ */
+    .markdown-section pre {
+      background: var(--mantle) !important;
+      border: 1px solid var(--surface0) !important;
+      border-radius: 10px !important;
+      padding: 1.2em 1.4em !important;
+      position: relative;
+      overflow-x: auto;
+    }
+
+    .markdown-section pre > code {
+      background: transparent !important;
+      color: var(--text) !important;
+      padding: 0 !important;
+      border: none !important;
+      font-size: 0.9em !important;
+      line-height: 1.65 !important;
+    }
+
+    /* language label */
+    .markdown-section pre::before {
+      content: attr(data-lang);
+      position: absolute;
+      top: 0.6em;
+      right: 3.5em;
+      font-size: 0.7em;
+      color: var(--overlay0);
+      font-family: 'JetBrains Mono', monospace;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    /* ============================================================
+       Prism token colors
+    ============================================================ */
+    .token.keyword        { color: var(--mauve)   !important; }
+    .token.builtin        { color: var(--mauve)   !important; }
+    .token.string         { color: var(--green)   !important; }
+    .token.comment        { color: var(--overlay0)!important; font-style: italic; }
+    .token.number         { color: var(--peach)   !important; }
+    .token.boolean        { color: var(--peach)   !important; }
+    .token.class-name     { color: var(--yellow)  !important; }
+    .token.type-name      { color: var(--yellow)  !important; }
+    .token.function       { color: var(--blue)    !important; }
+    .token.operator       { color: var(--sky)     !important; }
+    .token.punctuation    { color: var(--subtext0)!important; }
+    .token.variable       { color: var(--text)    !important; }
+    .token.property       { color: var(--teal)    !important; }
+    .token.tag            { color: var(--red)     !important; }
+    .token.attr-name      { color: var(--yellow)  !important; }
+    .token.attr-value     { color: var(--green)   !important; }
+    .token.namespace      { color: var(--mauve)   !important; opacity: 0.8; }
+    .token.interpolation  { color: var(--peach)   !important; }
+
+    /* ============================================================
+       Tables
+    ============================================================ */
+    .markdown-section table {
+      border-collapse: collapse !important;
+      width: 100%;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid var(--surface0) !important;
+    }
+
+    .markdown-section thead tr {
+      background: var(--surface0) !important;
+    }
+
+    .markdown-section th {
+      color: var(--mauve) !important;
+      font-weight: 700 !important;
+      padding: 0.7em 1em !important;
+      text-align: left;
+      font-size: 0.85em;
+      letter-spacing: 0.3px;
+    }
+
+    .markdown-section tbody tr {
+      border-bottom: 1px solid var(--surface0) !important;
+      transition: background 0.1s;
+    }
+
+    .markdown-section tbody tr:last-child {
+      border-bottom: none !important;
+    }
+
+    .markdown-section tbody tr:hover {
+      background: color-mix(in srgb, var(--surface0) 50%, transparent) !important;
+    }
+
+    .markdown-section td {
+      padding: 0.65em 1em !important;
+      color: var(--text) !important;
+      font-size: 0.9em;
+    }
+
+    /* ============================================================
+       Blockquotes
+    ============================================================ */
+    .markdown-section blockquote {
+      background: color-mix(in srgb, var(--blue) 8%, transparent) !important;
+      border-left: 3px solid var(--blue) !important;
+      border-radius: 0 8px 8px 0 !important;
+      padding: 0.8em 1.2em !important;
+      color: var(--subtext1) !important;
+      margin: 1em 0 !important;
+    }
+
+    .markdown-section blockquote p { margin: 0 !important; }
+
+    /* ============================================================
+       HR
+    ============================================================ */
+    .markdown-section hr {
+      border: none !important;
+      border-top: 1px solid var(--surface0) !important;
+      margin: 2em 0 !important;
+    }
+
+    /* ============================================================
+       Cover page
+    ============================================================ */
+    section.cover {
+      background: radial-gradient(ellipse at 20% 50%, #2d1b4e 0%, transparent 60%),
+                  radial-gradient(ellipse at 80% 20%, #1a2d4e 0%, transparent 60%),
+                  var(--crust) !important;
+    }
+
+    section.cover .cover-main {
+      padding: 2em;
+    }
+
+    .cover-main h1 {
+      font-size: 4em !important;
+      font-weight: 900 !important;
+      background: linear-gradient(135deg, var(--mauve) 0%, var(--lavender) 50%, var(--sky) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      letter-spacing: -2px;
+      margin-bottom: 0.2em !important;
+    }
+
+    .cover-main blockquote {
+      background: transparent !important;
+      border: none !important;
+      color: var(--subtext1) !important;
+      font-size: 1.2em !important;
+      padding: 0 !important;
+      margin: 0.5em 0 1.5em !important;
+    }
+
+    .cover-main p {
+      color: var(--subtext0) !important;
+    }
+
+    .cover-main p > code {
+      background: var(--surface0) !important;
+      color: var(--green) !important;
+      border: 1px solid var(--surface1) !important;
+      padding: 0.3em 0.8em !important;
+      border-radius: 6px;
+      font-size: 1em !important;
+      display: inline-block;
+      margin: 0.5em 0;
+    }
+
+    .cover-main .cover-main > p:last-child a {
+      border-radius: 8px !important;
+    }
+
+    section.cover a:not(.anchor) {
+      border: 2px solid var(--mauve) !important;
+      border-radius: 8px !important;
+      color: var(--mauve) !important;
+      padding: 0.6em 2em !important;
+      font-weight: 600 !important;
+      font-size: 0.95em !important;
+      background: transparent !important;
+      transition: all 0.2s !important;
+      text-decoration: none !important;
+    }
+
+    section.cover a:not(.anchor):first-of-type {
+      background: var(--mauve) !important;
+      color: var(--crust) !important;
+    }
+
+    section.cover a:not(.anchor):first-of-type:hover {
+      background: var(--lavender) !important;
+      border-color: var(--lavender) !important;
+    }
+
+    section.cover a:not(.anchor):last-of-type:hover {
+      background: color-mix(in srgb, var(--mauve) 15%, transparent) !important;
+    }
+
+    /* ============================================================
+       Navbar
+    ============================================================ */
+    nav.app-nav a {
+      color: var(--subtext0) !important;
+      font-size: 0.9em !important;
+      transition: color 0.15s;
+    }
+
+    nav.app-nav a:hover { color: var(--mauve) !important; }
+
+    /* ============================================================
+       Copy code button
+    ============================================================ */
+    .docsify-copy-code-button {
+      background: var(--surface1) !important;
+      color: var(--subtext0) !important;
+      border-radius: 6px !important;
+      font-size: 0.75em !important;
+      padding: 0.3em 0.7em !important;
+      top: 0.6em !important;
+      right: 0.6em !important;
+      transition: background 0.15s, color 0.15s !important;
+    }
+
+    .docsify-copy-code-button:hover {
+      background: var(--mauve) !important;
+      color: var(--crust) !important;
+    }
+
+    /* ============================================================
+       Pagination
+    ============================================================ */
+    .pagination-item a {
+      color: var(--sapphire) !important;
+      border: 1px solid var(--surface0) !important;
+      border-radius: 8px !important;
+      padding: 0.5em 1em !important;
+      font-size: 0.85em !important;
+      transition: all 0.15s;
+    }
+
+    .pagination-item a:hover {
+      border-color: var(--mauve) !important;
+      color: var(--mauve) !important;
+      background: color-mix(in srgb, var(--mauve) 8%, transparent) !important;
+    }
+
+    .pagination-item--title { color: var(--subtext0) !important; }
+
+    /* ============================================================
+       Scrollbar
+    ============================================================ */
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--surface1); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--mauve); }
+
+    /* ============================================================
+       Misc
+    ============================================================ */
+    .sidebar-toggle { background: var(--mantle) !important; }
+    .sidebar-toggle span { background-color: var(--overlay0) !important; }
+  </style>
+</head>
+<body>
+  <div id="app">Loading...</div>
+
+  <script>
+    window.$docsify = {
+      name: '🧶 Knotty',
+      repo: 'https://github.com/lukewire129/knotty',
+
+      coverpage: true,
+      onlyCover: false,
+
+      loadSidebar: true,
+      subMaxLevel: 2,
+
+      auto2top: true,
+      relativePath: false,
+
+      loadNavbar: true,
+
+      search: {
+        maxAge: 86400000,
+        paths: 'auto',
+        placeholder: '🔍  문서 검색...',
+        noData: '결과 없음',
+        depth: 4,
+      },
+
+      copyCode: {
+        buttonText: 'copy',
+        errorText:  'error',
+        successText: '✓ copied',
+      },
+
+      pagination: {
+        previousText: '← 이전',
+        nextText: '다음 →',
+        crossChapter: true,
+        crossChapterText: true,
+      },
+
+      plugins: [
+        // Jekyll front matter 제거 (--- ... --- 블록)
+        function(hook) {
+          hook.beforeEach(function(content) {
+            return content.replace(/^---[\s\S]*?---\s*\n/, '');
+          });
+        }
+      ]
+    };
+  </script>
+
+  <!-- Docsify core -->
+  <script src="https://cdn.jsdelivr.net/npm/docsify@4/lib/docsify.min.js"></script>
+
+  <!-- Syntax highlighting -->
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-csharp.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-bash.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-markup.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-yaml.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-json.min.js"></script>
+
+  <!-- Plugins -->
+  <script src="https://cdn.jsdelivr.net/npm/docsify@4/lib/plugins/search.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/docsify-copy-code@2/dist/docsify-copy-code.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/docsify-pagination/dist/docsify-pagination.min.js"></script>
+</body>
+</html>
