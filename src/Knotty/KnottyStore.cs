@@ -2,20 +2,22 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Knotty.Core;
+namespace Knotty;
 
 public abstract partial class KnottyStore<TState, TIntent>
     : INotifyPropertyChanged, INotifyPropertyChanging, INotifyDataErrorInfo, IDisposable
     where TState : class
 {
     private TState _state;
-    private bool _isLoading; // 이름 변경: IsProcessing -> IsLoading
-    private readonly IDisposable _busToken;
+    private bool _isLoading;
+    private bool _disposed;
+    private IDisposable? _busToken;
     private readonly Dictionary<string, List<string>> _errors = new ();
 
     public TState State
@@ -31,7 +33,6 @@ public abstract partial class KnottyStore<TState, TIntent>
         }
     }
 
-    // UI에서 ProgressBar나 비활성화 바인딩에 쓰기 딱 좋은 이름
     public bool IsLoading
     {
         get => _isLoading;
@@ -41,10 +42,39 @@ public abstract partial class KnottyStore<TState, TIntent>
     protected KnottyStore(TState initialState)
     {
         State = initialState ?? throw new ArgumentNullException (nameof (initialState));
-        _busToken = KnottyBus.Subscribe<TIntent> (this, Dispatch);
+        // Bus 구독은 opt-in: SubscribeToBus() 호출 시 활성화
     }
 
-    public void Dispatch(TIntent intent) => _ = DispatchAsync (intent);
+    /// <summary>
+    /// KnottyBus에서 이 Store가 broadcast intent를 수신하도록 등록합니다.
+    /// 같은 TIntent를 쓰는 Store가 여럿일 때 의도치 않은 cross-dispatch를 방지하기 위해 opt-in입니다.
+    /// </summary>
+    protected IDisposable SubscribeToBus()
+    {
+        _busToken = KnottyBus.Subscribe<TIntent> (this, Dispatch);
+        return _busToken;
+    }
+
+    public void Dispatch(TIntent intent) => _ = DispatchInternalAsync (intent);
+
+    private async Task DispatchInternalAsync(TIntent intent)
+    {
+        try
+        {
+            await DispatchAsync (intent);
+        }
+        catch (Exception ex)
+        {
+            // ExecuteIntent 내부에서 잡힌 예외는 여기까지 오지 않음.
+            // 여기 오는 것: GetStrategy, switch 라우팅 등 프레임워크 레벨 예외.
+            OnDispatchError (intent, ex);
+        }
+    }
+
+    protected virtual void OnDispatchError(TIntent intent, Exception ex)
+    {
+        Debug.WriteLine ($"[Knotty] Unhandled error dispatching {intent?.GetType ().Name}: {ex.Message}");
+    }
 
     public async Task DispatchAsync(TIntent intent)
     {
@@ -94,7 +124,7 @@ public abstract partial class KnottyStore<TState, TIntent>
                 break;
 
             case IntentHandlingStrategy.Parallel:
-                _ = ExecuteIntent (intent);  // Fire and forget
+                _ = ExecuteIntentParallel (intent);  // IsLoading 건드리지 않는 별도 경로
                 break;
         }
     }
@@ -138,5 +168,19 @@ public abstract partial class KnottyStore<TState, TIntent>
     protected void OnPropertyChanging([CallerMemberName] string name = null) => PropertyChanging?.Invoke (this, new PropertyChangingEventArgs (name));
     #endregion
 
-    public virtual void Dispose() => _busToken?.Dispose ();
+    public virtual void Dispose()
+    {
+        if (_disposed) return;
+        _disposed = true;
+
+        _busToken?.Dispose ();
+        _effectSubject.OnCompleted ();   // 구독자에게 Store 종료 알림
+        _currentCts?.Cancel ();          // 진행 중인 CancelPrevious 작업 취소
+        _currentCts?.Dispose ();
+        _currentCts = null;
+        _debounceCts?.Cancel ();         // 진행 중인 Debounce 타이머 취소
+        _debounceCts?.Dispose ();
+        _debounceCts = null;
+        _intentQueue.Clear ();
+    }
 }

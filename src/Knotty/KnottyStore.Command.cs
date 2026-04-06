@@ -1,8 +1,7 @@
 using System;
 using System.Windows.Input;
-using Knotty.Core.Commands;
 
-namespace Knotty.Core;
+namespace Knotty;
 
 /// <summary>
 /// KnottyStore에 Command 생성 헬퍼 메서드를 추가합니다.

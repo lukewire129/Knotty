@@ -1,4 +1,4 @@
-﻿using Knotty.Core;
+﻿using Knotty;
 using System.Diagnostics;
 
 namespace QueueApp;

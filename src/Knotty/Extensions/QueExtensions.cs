@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Knotty.Core.Extensions
+namespace Knotty.Extensions
 {
     internal static class QueueExtensions
     {

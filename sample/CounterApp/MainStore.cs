@@ -1,6 +1,4 @@
 ﻿using Knotty;
-using Knotty.Core;
-using Knotty.Core.Attributes;
 
 namespace CounterApp;
 

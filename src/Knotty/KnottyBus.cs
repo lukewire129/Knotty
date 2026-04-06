@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Knotty.Core;
+namespace Knotty;
 public static class KnottyBus
 {
     private class Subscription
@@ -31,12 +31,16 @@ public static class KnottyBus
         return new Unsubscriber (sub);
     }
 
-    public static void Send<TIntent>(TIntent intent)
+    /// <summary>
+    /// 등록된 모든 구독자에게 intent를 broadcast합니다.
+    /// record 상속 구조를 지원하여 부모 타입의 구독자에게도 전달됩니다.
+    /// </summary>
+    public static void Publish<TIntent>(TIntent intent)
     {
         if (intent == null)
             return;
 
-        // 현재 타입부터 부모 타입까지 쭉 훑습니다.
+        // 현재 타입부터 부모 타입까지 훑습니다 (record 상속 대응)
         var currentType = intent.GetType ();
 
         lock (_subs)
@@ -50,11 +54,14 @@ public static class KnottyBus
                     var activeSubs = list.ToList ();
                     activeSubs.ForEach (s => s.Action (intent));
                 }
-                // 부모 타입으로 올라가서 또 있는지 확인 (record 상속 대응)
                 currentType = currentType.BaseType;
             }
         }
     }
+
+    /// <inheritdoc cref="Publish{TIntent}"/>
+    [Obsolete ("Use Publish instead.")]
+    public static void Send<TIntent>(TIntent intent) => Publish (intent);
 
     private class Unsubscriber : IDisposable
     {

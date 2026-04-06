@@ -2,7 +2,7 @@
 using System.ComponentModel;
 using Knotty.Internal;
 
-namespace Knotty.Core;
+namespace Knotty;
 
 public abstract partial class KnottyStore<TState, TIntent>
     : INotifyPropertyChanged, INotifyPropertyChanging, INotifyDataErrorInfo, IDisposable, IEffectSource

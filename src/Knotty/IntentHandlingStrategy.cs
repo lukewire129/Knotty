@@ -1,4 +1,4 @@
-﻿namespace Knotty.Core;
+﻿namespace Knotty;
 
 public enum IntentHandlingStrategy
 {

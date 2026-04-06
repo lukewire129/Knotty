@@ -24,6 +24,11 @@
     <None Include="icon.png" Pack="true" PackagePath="\" />
   </ItemGroup>
 
+  <!-- DI Extension은 net6.0+ 전용 (netstandard2.0에는 불필요한 의존성 추가 안 함) -->
+  <ItemGroup Condition="'$(TargetFramework)' != 'netstandard2.0'">
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="8.0.0" />
+  </ItemGroup>
+
   <!-- Generator 프로젝트 빌드 의존성 (DLL 생성 보장) -->
   <ItemGroup>
     <ProjectReference Include="..\Knotty.Generators\Knotty.Generators.csproj" 

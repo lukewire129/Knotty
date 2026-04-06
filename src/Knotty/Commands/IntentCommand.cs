@@ -4,7 +4,7 @@ using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using System.Windows.Input;
 
-namespace Knotty.Core.Commands;
+namespace Knotty;
 
 /// <summary>
 /// 비동기 Command를 위한 인터페이스입니다.

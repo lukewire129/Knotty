@@ -1,6 +1,6 @@
 using System;
 using FluentAssertions;
-using Knotty.Core;
+using Knotty;
 using Xunit;
 
 namespace Knotty.Tests;

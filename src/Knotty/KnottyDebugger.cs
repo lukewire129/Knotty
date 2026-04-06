@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using System.Text.Json;
 #endif
 
-namespace Knotty.Core
+namespace Knotty
 {
     public static class KnottyDebugger
     {

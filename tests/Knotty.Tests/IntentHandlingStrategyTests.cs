@@ -1,7 +1,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
-using Knotty.Core;
+using Knotty;
 using Xunit;
 
 namespace Knotty.Tests;

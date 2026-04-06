@@ -11,8 +11,8 @@ namespace Knotty.Generators;
 [Generator]
 public class IntentCommandGenerator : IIncrementalGenerator
 {
-    private const string IntentCommandAttributeName = "Knotty.Core.Attributes.IntentCommandAttribute";
-    private const string AsyncIntentCommandAttributeName = "Knotty.Core.Attributes.AsyncIntentCommandAttribute";
+    private const string IntentCommandAttributeName = "Knotty.IntentCommandAttribute";
+    private const string AsyncIntentCommandAttributeName = "Knotty.AsyncIntentCommandAttribute";
 
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
@@ -183,7 +183,7 @@ public class IntentCommandGenerator : IIncrementalGenerator
         sb.AppendLine("#nullable enable");
         sb.AppendLine();
         sb.AppendLine("using System.Windows.Input;");
-        sb.AppendLine("using Knotty.Core.Commands;");
+        sb.AppendLine("using Knotty;");
         sb.AppendLine();
 
         if (!string.IsNullOrEmpty(namespaceName) && namespaceName != "<global namespace>")

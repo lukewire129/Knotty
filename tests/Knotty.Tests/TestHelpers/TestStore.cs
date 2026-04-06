@@ -1,6 +1,6 @@
 using System.Threading;
 using System.Threading.Tasks;
-using Knotty.Core;
+using Knotty;
 
 namespace Knotty.Tests.TestHelpers;
 

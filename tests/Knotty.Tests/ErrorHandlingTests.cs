@@ -3,7 +3,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
-using Knotty.Core;
+using Knotty;
 using Xunit;
 
 namespace Knotty.Tests;
@@ -56,7 +56,8 @@ public class ErrorHandlingTests
 
         // Assert
         store.HasErrors.Should().BeTrue();
-        var errors = store.GetErrors("Store")?.Cast<string>().ToList();
+        // 에러 key는 Intent 타입 이름 (P2-3 개선)
+        var errors = store.GetErrors("ThrowException")?.Cast<string>().ToList();
         errors.Should().NotBeNull();
         errors.Should().Contain("Test error");
     }

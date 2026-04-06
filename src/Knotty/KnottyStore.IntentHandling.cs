@@ -1,5 +1,5 @@
 ﻿#if NETSTANDARD2_0 || NET462
-using Knotty.Core.Extensions;
+using Knotty.Extensions;
 #endif
 using System;
 using System.Collections.Generic;
@@ -8,7 +8,7 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Knotty.Core;
+namespace Knotty;
 
 public abstract partial class KnottyStore<TState, TIntent>
     : INotifyPropertyChanged, INotifyPropertyChanging, INotifyDataErrorInfo, IDisposable
@@ -16,16 +16,15 @@ public abstract partial class KnottyStore<TState, TIntent>
 {
     private readonly Queue<TIntent> _intentQueue = new ();
     private CancellationTokenSource? _currentCts;
-    private Dictionary<Type, DateTime> _lastIntentTime = new ();
+    private CancellationTokenSource? _debounceCts;
 
-    // Intent별로 전략 정의
+    /// <summary>Intent별 처리 전략을 반환합니다. 기본값은 Block입니다.</summary>
     protected virtual IntentHandlingStrategy GetStrategy(TIntent intent)
-        => IntentHandlingStrategy.Block;  // 기본값
+        => IntentHandlingStrategy.Block;
 
-    // Debounce 시간 (기본 300ms)
+    /// <summary>Debounce 대기 시간을 반환합니다. 기본값은 300ms입니다.</summary>
     protected virtual TimeSpan GetDebounceDelay(TIntent intent)
         => TimeSpan.FromMilliseconds (300);
-
 
     private async Task ExecuteIntent(TIntent intent, CancellationToken ct = default)
     {
@@ -37,17 +36,41 @@ public abstract partial class KnottyStore<TState, TIntent>
         }
         catch (OperationCanceledException)
         {
-            // 취소됨 - 로그만 남기고 에러 처리 안 함
-            Debug.WriteLine ($"[Knotty] Intent {intent.GetType ().Name} cancelled");
+            Debug.WriteLine ($"[Knotty] Intent {intent?.GetType ().Name} cancelled");
         }
         catch (Exception ex)
         {
-            AddError ("Store", ex.Message);
+            // 에러 key를 Intent 타입 이름으로 기록해 어떤 Intent에서 발생했는지 추적 가능
+            var errorKey = intent?.GetType ().Name ?? "Store";
+            AddError (errorKey, ex.Message);
             OnHandleError (ex);
         }
         finally
         {
             IsLoading = false;
+        }
+    }
+
+    /// <summary>
+    /// Parallel 전략 전용 실행 경로. IsLoading을 건드리지 않아
+    /// 동시에 여러 Parallel intent가 실행되어도 IsLoading이 불안정해지지 않습니다.
+    /// </summary>
+    private async Task ExecuteIntentParallel(TIntent intent, CancellationToken ct = default)
+    {
+        try
+        {
+            ClearAllErrors ();
+            await HandleIntent (intent, ct);
+        }
+        catch (OperationCanceledException)
+        {
+            Debug.WriteLine ($"[Knotty] Intent {intent?.GetType ().Name} cancelled");
+        }
+        catch (Exception ex)
+        {
+            var errorKey = intent?.GetType ().Name ?? "Store";
+            AddError (errorKey, ex.Message);
+            OnHandleError (ex);
         }
     }
 
@@ -61,16 +84,21 @@ public abstract partial class KnottyStore<TState, TIntent>
 
     private async Task ProcessDebounced(TIntent intent)
     {
-        var intentType = intent.GetType ();
-        _lastIntentTime[intentType] = DateTime.Now;
+        // 이전 debounce 타이머 취소 — CancellationTokenSource 기반으로 DateTime 없이 정확하게 처리
+        _debounceCts?.Cancel ();
+        _debounceCts?.Dispose ();
+        _debounceCts = new CancellationTokenSource ();
+        var token = _debounceCts.Token;
 
-        var delay = GetDebounceDelay (intent);
-        await Task.Delay (delay);
-
-        // 아직도 이게 마지막 Intent인가?
-        if (_lastIntentTime[intentType].Add (delay) <= DateTime.Now)
+        try
         {
+            await Task.Delay (GetDebounceDelay (intent), token);
+            // 여기 도달 = 이 intent가 마지막 (취소 안 됨)
             await ExecuteIntent (intent);
+        }
+        catch (OperationCanceledException)
+        {
+            // 새 intent가 들어와서 이전 대기가 취소됨. 정상 동작.
         }
     }
 }

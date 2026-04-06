@@ -1,6 +1,6 @@
 using System;
 
-namespace Knotty.Core.Attributes;
+namespace Knotty;
 
 /// <summary>
 /// Intent 필드 또는 Intent 생성 메서드에 적용하면 동기 Command 프로퍼티를 자동 생성합니다.

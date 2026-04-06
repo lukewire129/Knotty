@@ -1,4 +1,4 @@
-﻿using Knotty.Core;
+﻿using Knotty;
 
 namespace DebounceApp;
 public record CounterState(int Count, string Message);
