@@ -69,8 +69,7 @@ public partial class CounterStore : KnottyStore<CounterState, CounterIntent>
 | **DI Ready** | `services.AddKnottyStore<MyStore>()` for net6.0+ |
 
 ## Documentation
-
-**→ [knotty docs](https://lukewire129.github.io/knotty)**
+**→ [knotty docs](https://lukewire129.github.io/Knotty/)**
 
 ## License
 
