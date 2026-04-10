@@ -36,15 +36,11 @@ public class IntentCommandGenerator : IIncrementalGenerator
         var allMembers = fieldDeclarations.Collect()
             .Combine(methodDeclarations.Collect());
 
-        // 컴파일 정보와 결합
-        var compilationAndMembers = context.CompilationProvider.Combine(allMembers);
-
-        // 소스 생성
-        context.RegisterSourceOutput(compilationAndMembers, static (spc, source) => 
+        // 소스 생성 (CompilationProvider 와 결합하지 않음 — Compilation 은 사용되지 않으며,
+        // 결합하면 매 키 입력마다 generator 가 재실행되어 IDE 성능을 저하시킨다)
+        context.RegisterSourceOutput(allMembers, static (spc, source) =>
         {
-            var fields = source.Right.Left;
-            var methods = source.Right.Right;
-            Execute(fields, methods, spc);
+            Execute(source.Left, source.Right, spc);
         });
     }
 
@@ -84,6 +80,7 @@ public class IntentCommandGenerator : IIncrementalGenerator
                 {
                     var commandName = GetNamedArgumentValue(attribute, "CommandName");
                     var canExecute = GetNamedArgumentValue(attribute, "CanExecute");
+                    var canExecuteKind = ResolveCanExecuteKind(fieldSymbol.ContainingType, canExecute, parameterType: null);
 
                     return new CommandMemberInfo(
                         MemberName: fieldSymbol.Name,
@@ -93,7 +90,8 @@ public class IntentCommandGenerator : IIncrementalGenerator
                         IsMethod: false,
                         ParameterType: null,
                         CommandName: commandName,
-                        CanExecute: canExecute);
+                        CanExecute: canExecute,
+                        CanExecuteKind: canExecuteKind);
                 }
             }
         }
@@ -132,6 +130,8 @@ public class IntentCommandGenerator : IIncrementalGenerator
                     parameterType = methodSymbol.Parameters[0].Type.ToDisplayString();
                 }
 
+                var canExecuteKind = ResolveCanExecuteKind(methodSymbol.ContainingType, canExecute, parameterType);
+
                 return new CommandMemberInfo(
                     MemberName: methodSymbol.Name,
                     ClassName: methodSymbol.ContainingType.Name,
@@ -140,11 +140,55 @@ public class IntentCommandGenerator : IIncrementalGenerator
                     IsMethod: true,
                     ParameterType: parameterType,
                     CommandName: commandName,
-                    CanExecute: canExecute);
+                    CanExecute: canExecute,
+                    CanExecuteKind: canExecuteKind);
             }
         }
 
         return null;
+    }
+
+    private static CanExecuteKind ResolveCanExecuteKind(
+        INamedTypeSymbol containingType,
+        string? canExecuteName,
+        string? parameterType)
+    {
+        if (string.IsNullOrEmpty(canExecuteName)) return CanExecuteKind.None;
+
+        // 오버로드 우선순위:
+        //   1순위: 파라미터 타입이 일치하는 메서드 (parameterized command 일 때만 의미 있음)
+        //   2순위: 파라미터 없는 메서드 / bool 프로퍼티
+        CanExecuteKind? fallback = null;
+
+        for (var t = containingType; t is not null; t = t.BaseType)
+        {
+            foreach (var m in t.GetMembers(canExecuteName!))
+            {
+                switch (m)
+                {
+                    case IMethodSymbol method when method.MethodKind == MethodKind.Ordinary
+                                                && method.ReturnType.SpecialType == SpecialType.System_Boolean:
+                        if (parameterType is not null
+                            && method.Parameters.Length == 1
+                            && method.Parameters[0].Type.ToDisplayString() == parameterType)
+                        {
+                            return CanExecuteKind.MethodWithParam; // 1순위 — 즉시 반환
+                        }
+                        if (method.Parameters.Length == 0)
+                        {
+                            fallback ??= CanExecuteKind.Method;
+                        }
+                        break;
+
+                    case IPropertySymbol p when p.Type.SpecialType == SpecialType.System_Boolean:
+                        fallback ??= CanExecuteKind.Property;
+                        break;
+                }
+            }
+        }
+
+        // 못 찾으면 Method 로 가정 → 사용자 코드에서 자연스러운 컴파일 에러로 드러남
+        return fallback ?? CanExecuteKind.Method;
     }
 
     private static string? GetNamedArgumentValue(AttributeData attribute, string name)
@@ -200,7 +244,7 @@ public class IntentCommandGenerator : IIncrementalGenerator
             var commandName = member.CommandName ?? GenerateCommandName(member.MemberName, member.IsMethod);
             var commandType = member.IsAsync ? "IAsyncCommand" : "ICommand";
             var methodName = member.IsAsync ? "AsyncCommand" : "Command";
-            var canExecuteParam = string.IsNullOrEmpty(member.CanExecute) ? "" : $", {member.CanExecute}";
+            var canExecuteParam = BuildCanExecuteParam(member);
 
             sb.AppendLine($"    private {commandType}? _{ToCamelCase(commandName)};");
 
@@ -217,9 +261,50 @@ public class IntentCommandGenerator : IIncrementalGenerator
             sb.AppendLine();
         }
 
+        // CanExecute가 있는 멤버가 하나라도 있으면 OnStateChanged override를 emit한다.
+        // KnottyStore.OnStateChanged()는 State/IsLoading 변경 시 호출되므로,
+        // 여기서 각 Command의 RaiseCanExecuteChanged()를 직접 호출한다.
+        // CommandManager.InvalidateRequerySuggested()는 RoutedCommand 전용이라 IntentCommand에 효과 없음.
+        var canExecuteMembers = members.Where(m => m.CanExecuteKind != CanExecuteKind.None).ToList();
+        if (canExecuteMembers.Count > 0)
+        {
+            sb.AppendLine($"    protected override void OnStateChanged()");
+            sb.AppendLine($"    {{");
+            foreach (var m in canExecuteMembers)
+            {
+                var cmdName = m.CommandName ?? GenerateCommandName(m.MemberName, m.IsMethod);
+                sb.AppendLine($"        (_{ToCamelCase(cmdName)} as Knotty.INotifyCanExecuteChanged)?.RaiseCanExecuteChanged();");
+            }
+            sb.AppendLine($"    }}");
+            sb.AppendLine();
+        }
+
         sb.AppendLine("}");
 
         return sb.ToString();
+    }
+
+    private static string BuildCanExecuteParam(CommandMemberInfo m)
+    {
+        if (m.CanExecuteKind == CanExecuteKind.None || string.IsNullOrEmpty(m.CanExecute))
+            return "";
+
+        bool isParameterizedCommand = m.IsMethod && m.ParameterType != null;
+
+        return (m.CanExecuteKind, isParameterizedCommand) switch
+        {
+            // Command(intent, Func<bool>)
+            (CanExecuteKind.Method,          false) => $", {m.CanExecute}",
+            (CanExecuteKind.Property,        false) => $", () => {m.CanExecute}",
+            (CanExecuteKind.MethodWithParam, false) => $", {m.CanExecute}",
+
+            // Command<TParam>(factory, Func<TParam,bool>)
+            (CanExecuteKind.Method,          true)  => $", _ => {m.CanExecute}()",
+            (CanExecuteKind.Property,        true)  => $", _ => {m.CanExecute}",
+            (CanExecuteKind.MethodWithParam, true)  => $", {m.CanExecute}",
+
+            _ => "",
+        };
     }
 
     private static string GenerateCommandName(string memberName, bool isMethod)
@@ -246,6 +331,14 @@ public class IntentCommandGenerator : IIncrementalGenerator
     }
 }
 
+internal enum CanExecuteKind
+{
+    None,
+    Method,           // () => bool  →  Func<bool>
+    MethodWithParam,  // (TParam) => bool  →  Func<TParam, bool>
+    Property,         // bool 값 — 람다로 래핑 필요
+}
+
 internal record CommandMemberInfo(
     string MemberName,
     string ClassName,
@@ -254,4 +347,5 @@ internal record CommandMemberInfo(
     bool IsMethod,
     string? ParameterType,
     string? CommandName,
-    string? CanExecute);
+    string? CanExecute,
+    CanExecuteKind CanExecuteKind);

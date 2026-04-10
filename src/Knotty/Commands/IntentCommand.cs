@@ -7,6 +7,15 @@ using System.Windows.Input;
 namespace Knotty;
 
 /// <summary>
+/// CanExecuteChanged 이벤트를 명시적으로 발행할 수 있는 Command 인터페이스입니다.
+/// State 변경 시 Generator가 생성한 OnStateChanged에서 이 메서드를 호출합니다.
+/// </summary>
+public interface INotifyCanExecuteChanged
+{
+    void RaiseCanExecuteChanged();
+}
+
+/// <summary>
 /// 비동기 Command를 위한 인터페이스입니다.
 /// </summary>
 public interface IAsyncCommand : ICommand, INotifyPropertyChanged
@@ -19,7 +28,7 @@ public interface IAsyncCommand : ICommand, INotifyPropertyChanged
 /// Intent를 Dispatch하는 기본 Command입니다.
 /// </summary>
 /// <typeparam name="TIntent">Intent 타입</typeparam>
-public class IntentCommand<TIntent> : ICommand
+public class IntentCommand<TIntent> : ICommand, INotifyCanExecuteChanged
 {
     private readonly Action<TIntent> _dispatch;
     private readonly TIntent _intent;
@@ -46,7 +55,7 @@ public class IntentCommand<TIntent> : ICommand
 /// </summary>
 /// <typeparam name="TIntent">Intent 타입</typeparam>
 /// <typeparam name="TParameter">CommandParameter 타입</typeparam>
-public class IntentCommand<TIntent, TParameter> : ICommand
+public class IntentCommand<TIntent, TParameter> : ICommand, INotifyCanExecuteChanged
 {
     private readonly Action<TIntent> _dispatch;
     private readonly Func<TParameter, TIntent> _intentFactory;
@@ -85,7 +94,7 @@ public class IntentCommand<TIntent, TParameter> : ICommand
 /// 실행 중에는 CanExecute가 false가 됩니다.
 /// </summary>
 /// <typeparam name="TIntent">Intent 타입</typeparam>
-public class AsyncIntentCommand<TIntent> : IAsyncCommand
+public class AsyncIntentCommand<TIntent> : IAsyncCommand, INotifyCanExecuteChanged
 {
     private readonly Func<TIntent, Task> _dispatchAsync;
     private readonly TIntent _intent;
@@ -148,7 +157,7 @@ public class AsyncIntentCommand<TIntent> : IAsyncCommand
 /// </summary>
 /// <typeparam name="TIntent">Intent 타입</typeparam>
 /// <typeparam name="TParameter">CommandParameter 타입</typeparam>
-public class AsyncIntentCommand<TIntent, TParameter> : IAsyncCommand
+public class AsyncIntentCommand<TIntent, TParameter> : IAsyncCommand, INotifyCanExecuteChanged
 {
     private readonly Func<TIntent, Task> _dispatchAsync;
     private readonly Func<TParameter, TIntent> _intentFactory;

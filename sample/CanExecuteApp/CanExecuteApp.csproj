@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
@@ -21,4 +21,5 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\Knotty\Knotty.csproj" />
   </ItemGroup>
+
 </Project>

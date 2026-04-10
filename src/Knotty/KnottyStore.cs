@@ -30,14 +30,21 @@ public abstract partial class KnottyStore<TState, TIntent>
             OnPropertyChanging ();
             _state = value;
             OnPropertyChanged ();
+            OnStateChanged ();
         }
     }
 
     public bool IsLoading
     {
         get => _isLoading;
-        private set { _isLoading = value; OnPropertyChanged (); }
+        private set { _isLoading = value; OnPropertyChanged (); OnStateChanged (); }
     }
+
+    /// <summary>
+    /// State 또는 IsLoading이 변경될 때 호출됩니다.
+    /// CanExecute를 재평가해야 하는 경우 소스 Generator가 이 메서드를 override합니다.
+    /// </summary>
+    protected virtual void OnStateChanged() { }
 
     protected KnottyStore(TState initialState)
     {
